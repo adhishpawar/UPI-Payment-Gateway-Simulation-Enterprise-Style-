@@ -1,53 +1,63 @@
 package com.upi.bankservice.service;
 
-import com.upi.bankservice.DTOs.DebitRequest;
-import com.upi.bankservice.DTOs.DebitResponse;
-import com.upi.bankservice.Repositories.AccountRepository;
-import com.upi.bankservice.Repositories.IdempotencyRepository;
-import com.upi.bankservice.Repositories.LedgerRepository;
-import com.upi.bankservice.Repositories.TransactionRepository;
+import com.upi.bankservice.DTOs.*;
+import com.upi.bankservice.Repositories.*;
 import com.upi.bankservice.exception.InsufficientFundsException;
-import com.upi.bankservice.models.Account;
-import com.upi.bankservice.models.IdempotencyRecord;
-import com.upi.bankservice.models.LedgerEntry;
-import com.upi.bankservice.models.TransactionRecord;
+import com.upi.bankservice.models.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class BankService {
+public class BankAccountService {
 
-    private final AccountRepository accountRepository;
+    private final BankAccountRepository bankAccountRepository;
     private final TransactionRepository transactionRepository;
     private final IdempotencyRepository idempotencyRepository;
     private final LedgerRepository ledgerRepository;
 
-    public BankService(AccountRepository accountRepository,
-                       TransactionRepository transactionRepository,
-                       IdempotencyRepository idempotencyRepository,
-                       LedgerRepository ledgerRepository) {
-        this.accountRepository = accountRepository;
+    public BankAccountService(BankAccountRepository bankAccountRepository,
+                              TransactionRepository transactionRepository,
+                              IdempotencyRepository idempotencyRepository,
+                              LedgerRepository ledgerRepository) {
+        this.bankAccountRepository = bankAccountRepository;
         this.transactionRepository = transactionRepository;
         this.idempotencyRepository = idempotencyRepository;
         this.ledgerRepository = ledgerRepository;
     }
 
-    @Transactional
-    public DebitResponse debit(DebitRequest req){
+    public BankAccount linkBankAccount(BankAccountRequest request, User user) {
+        BankAccount account = BankAccount.builder()
+                .id(UUID.randomUUID())
+                .accountNumber(request.getAccountNumber())
+                .bankId(request.getBankId())
+                .balance(BigDecimal.valueOf(1000.00)) // mock initial balance
+                .user(user)
+                .updatedAt(Instant.now())
+                .build();
+        return bankAccountRepository.save(account);
+    }
 
-        // Idempotency check
+    /** List user’s linked accounts */
+    public List<BankAccount> listAccounts(User user) {
+        return bankAccountRepository.findByUser(user);
+    }
+
+    /** Debit operation with idempotency, ledger, transaction log */
+    @Transactional
+    public DebitResponse debit(DebitRequest req) {
+        // 1. Idempotency check
         Optional<IdempotencyRecord> existing = idempotencyRepository.findByTxId(req.getTransactionId());
         if (existing.isPresent()) {
-            // If already processed, return stored response (simple approach)
             return new DebitResponse(req.getTransactionId(), "SUCCESS", "Already processed");
         }
 
-        // prepare transaction record
+        // 2. Create transaction record
         TransactionRecord tx = TransactionRecord.builder()
                 .id(UUID.randomUUID())
                 .transactionId(req.getTransactionId())
@@ -59,23 +69,23 @@ public class BankService {
                 .build();
         transactionRepository.save(tx);
 
-        //lock the account row for update (pessimistic)
-        Account account = accountRepository.findByAccountNumberForUpdate(req.getAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Account not Found: " + req.getAccountNumber()));
+        // 3. Lock account row
+        BankAccount account = bankAccountRepository.findByAccountNumberForUpdate(req.getAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Account not found: " + req.getAccountNumber()));
 
-        BigDecimal balance = account.getBalance();
-        if(balance.compareTo(req.getAmount()) <0 ){
+        // 4. Check funds
+        if (account.getBalance().compareTo(req.getAmount()) < 0) {
             tx.setStatus("FAILED");
             transactionRepository.save(tx);
             throw new InsufficientFundsException("Insufficient Funds");
         }
 
-        //debit
-        account.setBalance(balance.subtract(req.getAmount()));
+        // 5. Debit account
+        account.setBalance(account.getBalance().subtract(req.getAmount()));
         account.setUpdatedAt(Instant.now());
-        accountRepository.save(account);
+        bankAccountRepository.save(account);
 
-        //Ledger entry
+        // 6. Ledger entry
         LedgerEntry ledger = LedgerEntry.builder()
                 .id(UUID.randomUUID())
                 .txId(req.getTransactionId())
@@ -85,11 +95,11 @@ public class BankService {
                 .build();
         ledgerRepository.save(ledger);
 
-        //update transaction
+        // 7. Update transaction
         tx.setStatus("DEBITED");
         transactionRepository.save(tx);
 
-        //create idempotency record (Store minimal result)
+        // 8. Save idempotency record
         IdempotencyRecord idr = IdempotencyRecord.builder()
                 .id(UUID.randomUUID())
                 .txId(req.getTransactionId())

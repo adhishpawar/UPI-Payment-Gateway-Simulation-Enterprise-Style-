@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Account {
+public class BankAccount {
     @Id
     @Column(columnDefinition = "uuid")
     private UUID id;
@@ -32,4 +32,8 @@ public class Account {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
