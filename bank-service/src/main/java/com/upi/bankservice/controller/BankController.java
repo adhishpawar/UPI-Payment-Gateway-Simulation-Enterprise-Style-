@@ -24,8 +24,9 @@ public class BankController {
     private BankService bankService;
 
     // POST /banks → create a new Bank    --> Bank Registration By Admin or Manager
-    @PostMapping
-    public ResponseEntity<ApiResponse<BankResponse>> createBank(@Valid @RequestBody BankRequest request) {
+    @PostMapping(consumes = "application/json", produces = "application/json")
+    public ResponseEntity<ApiResponse<BankResponse>> createBank(
+            @Valid @RequestBody BankRequest request) {
         Bank bank = new Bank();
         bank.setName(request.getName());
         bank.setIfscCode(request.getIfscCode());
@@ -41,6 +42,8 @@ public class BankController {
 
         return ResponseEntity.ok(new ApiResponse<>("SUCCESS", "Bank created successfully", response));
     }
+
+
 
     // GET /banks → list all banks
     @GetMapping

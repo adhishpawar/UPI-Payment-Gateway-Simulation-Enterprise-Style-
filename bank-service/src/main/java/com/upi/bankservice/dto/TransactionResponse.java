@@ -1,11 +1,9 @@
 package com.upi.bankservice.dto;
 
-import lombok.Data;
-
 import java.math.BigDecimal;
 
-@Data
 public class TransactionResponse {
+
     private String txId;
     private String accountNumber;
     private BigDecimal amount;
@@ -13,9 +11,22 @@ public class TransactionResponse {
     private String status;     // SUCCESS / FAILED
     private BigDecimal balanceAfter;
 
-    public TransactionResponse(String txId, String accountNumber, BigDecimal amount, String debit, String success, BigDecimal bigDecimal) {
+    // No-argument constructor (required by Jackson)
+    public TransactionResponse() {
     }
 
+    // All-argument constructor
+    public TransactionResponse(String txId, String accountNumber, BigDecimal amount,
+                               String type, String status, BigDecimal balanceAfter) {
+        this.txId = txId;
+        this.accountNumber = accountNumber;
+        this.amount = amount;
+        this.type = type;
+        this.status = status;
+        this.balanceAfter = balanceAfter;
+    }
+
+    // Getters and Setters
     public String getTxId() {
         return txId;
     }
@@ -62,5 +73,17 @@ public class TransactionResponse {
 
     public void setBalanceAfter(BigDecimal balanceAfter) {
         this.balanceAfter = balanceAfter;
+    }
+
+    @Override
+    public String toString() {
+        return "TransactionResponse{" +
+                "txId='" + txId + '\'' +
+                ", accountNumber='" + accountNumber + '\'' +
+                ", amount=" + amount +
+                ", type='" + type + '\'' +
+                ", status='" + status + '\'' +
+                ", balanceAfter=" + balanceAfter +
+                '}';
     }
 }
