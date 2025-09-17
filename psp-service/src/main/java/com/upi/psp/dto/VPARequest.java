@@ -9,7 +9,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class VPARequest {
     private UUID userId;
-    private String vpaAddress;    // optional (auto-generate if null)
     private String pspId;
     private String bankAccountId;
 }

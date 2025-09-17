@@ -16,5 +16,8 @@ public class TransactionResponse {
     private String type;       // DEBIT or CREDIT
     private String status;     // SUCCESS or FAILED
     private BigDecimal balanceAfter;
+
+    public TransactionResponse(String txId, String accountNumber, BigDecimal amount, String debit, String success) {
+    }
 }
 

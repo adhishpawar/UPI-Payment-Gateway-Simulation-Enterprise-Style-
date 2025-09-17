@@ -73,7 +73,7 @@ public class BankAccountController {
     }
 
     // PATCH /accounts/{accountNumber}/debit
-    @PatchMapping("/{accountNumber}/debit")
+    @PutMapping("/{accountNumber}/debit")
     public ResponseEntity<ApiResponse<TransactionResponse>> debit(
             @PathVariable String accountNumber,
             @Valid @RequestBody TransactionRequest request) {
@@ -88,7 +88,7 @@ public class BankAccountController {
     }
 
     // PATCH /accounts/{accountNumber}/credit
-    @PatchMapping("/{accountNumber}/credit")
+    @PutMapping("/{accountNumber}/credit")
     public ResponseEntity<ApiResponse<TransactionResponse>> credit(
             @PathVariable String accountNumber,
             @Valid @RequestBody TransactionRequest request) {

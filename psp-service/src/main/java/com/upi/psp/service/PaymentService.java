@@ -1,22 +1,31 @@
 package com.upi.psp.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.upi.psp.dto.*;
 import com.upi.psp.model.VPA;
 import com.upi.psp.dto.PaymentInitResponse;
 import com.upi.psp.repo.VpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
 
     private final VpaRepository vpaRepository;
+
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
 
     private static final String BANK_SERVICE_URL = "http://localhost:8081/accounts"; // ✅ BankService base URL
 
@@ -34,8 +43,11 @@ public class PaymentService {
             return new PaymentInitResponse(request.getTxId(), "FAILED", "Payee VPA not found");
         }
 
+        // Generate new TxId for this transaction
+        String txId = "TXN" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
         // For now we simulate NPCI routing
-        return new PaymentInitResponse(request.getTxId(), "INITIATED", "Sent to NPCI for routing");
+        return new PaymentInitResponse(txId, "INITIATED", "Sent to NPCI for routing");
     }
 
     // ---------------- Step 2: Validate Payee ----------------
@@ -51,13 +63,26 @@ public class PaymentService {
     public TransactionResponse debit(String txId, String accountNumber, BigDecimal amount) {
         String url = BANK_SERVICE_URL + "/" + accountNumber + "/debit";
         TransactionRequest req = new TransactionRequest(txId, amount);
-        return restTemplate.patchForObject(url, req, TransactionResponse.class);
+        restTemplate.put(url, req);
+        ResponseEntity<ApiResponse<TransactionResponse>> response = restTemplate.exchange(
+                url,
+                HttpMethod.PUT,
+                new HttpEntity<>(req),
+                new ParameterizedTypeReference<ApiResponse<TransactionResponse>>() {}
+        );
+        return response.getBody().getData();
     }
 
     // ---------------- Step 4: Credit payee account ----------------
     public TransactionResponse credit(String txId, String accountNumber, BigDecimal amount) {
         String url = BANK_SERVICE_URL + "/" + accountNumber + "/credit";
         TransactionRequest req = new TransactionRequest(txId, amount);
-        return restTemplate.patchForObject(url, req, TransactionResponse.class);
+        ResponseEntity<ApiResponse<TransactionResponse>> response = restTemplate.exchange(
+                url,
+                HttpMethod.PUT,
+                new HttpEntity<>(req),
+                new ParameterizedTypeReference<ApiResponse<TransactionResponse>>() {}
+        );
+        return response.getBody().getData();
     }
 }

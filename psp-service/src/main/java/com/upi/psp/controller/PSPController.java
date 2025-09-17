@@ -52,7 +52,7 @@ public class PSPController {
     }
 
     // Step 3: Debit payer account (via BankService)
-    @PatchMapping("/{txId}/debit/{accountNumber}")
+    @PutMapping("/{txId}/debit/{accountNumber}")
     public ResponseEntity<ApiResponse<TransactionResponse>> debitAccount(
             @PathVariable String txId,
             @PathVariable String accountNumber,
@@ -63,7 +63,7 @@ public class PSPController {
     }
 
     // Step 4: Credit payee account (via BankService)
-    @PatchMapping("/{txId}/credit/{accountNumber}")
+    @PutMapping("/{txId}/credit/{accountNumber}")
     public ResponseEntity<ApiResponse<TransactionResponse>> creditAccount(
             @PathVariable String txId,
             @PathVariable String accountNumber,
@@ -73,3 +73,4 @@ public class PSPController {
         return ResponseEntity.ok(new ApiResponse<>("SUCCESS", "Credit successful", response));
     }
 }
+
