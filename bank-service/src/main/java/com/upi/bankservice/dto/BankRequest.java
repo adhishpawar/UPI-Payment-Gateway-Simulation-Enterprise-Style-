@@ -9,9 +9,6 @@ public class BankRequest {
     private String name;
 
     @NotBlank
-    private String ifscCode;
-
-    @NotBlank
     private String upiHandle;
 
     public String getName() {
@@ -20,14 +17,6 @@ public class BankRequest {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getIfscCode() {
-        return ifscCode;
-    }
-
-    public void setIfscCode(String ifscCode) {
-        this.ifscCode = ifscCode;
     }
 
     public String getUpiHandle() {

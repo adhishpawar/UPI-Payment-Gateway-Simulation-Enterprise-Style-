@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +40,7 @@ public class BankService {
     }
 
     // Get Bank by ID
-    public Optional<Bank> getBankById(UUID bankId) {
+    public Optional<Bank> getBankById(String bankId) {
         return bankRepository.findById(bankId);
     }
 }

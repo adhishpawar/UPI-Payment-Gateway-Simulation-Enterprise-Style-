@@ -3,40 +3,62 @@ package com.upi.bankservice.models;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.Random;
 
 @Entity
 @Table(name = "banks")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Bank {
 
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(name = "bank_id", updatable = false, nullable = false)
-    private UUID bankId;
+    @Column(name = "bank_id", nullable = false, unique = true, length = 32)
+    private String bankId;
 
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(name = "ifsc_code", nullable = false, unique = true,length = 11)
+    @Column(name = "ifsc_code", nullable = false, unique = true,length = 16)
     private String ifscCode;
 
     @Column(name = "upi_handle", nullable = false, unique = true)
     private String upiHandle; // e.g., @axis
 
-    public UUID getBankId() {
+    public Bank() {}
+
+    public Bank(String name) {
+        this.name = name;
+        this.bankId = generateBankId();
+        this.ifscCode = generateIfscCode(name);
+    }
+
+    private String generateIfscCode(String bankName) {
+        String prefix = bankName.substring(0, Math.min(4, bankName.length())).toUpperCase();
+        return prefix + String.format("%07d", new Random().nextInt(9999999));
+    }
+
+    private String generateBankId() {
+        return "BANK" + String.format("%06d", new Random().nextInt(999999));
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.bankId == null) {
+            this.bankId = generateBankId();
+        }
+        if (this.ifscCode == null) {
+            this.ifscCode = generateIfscCode(this.name);
+        }
+    }
+
+    public String getBankId() {
         return bankId;
     }
 
-    public void setBankId(UUID bankId) {
+    public void setBankId(String bankId) {
         this.bankId = bankId;
     }
 

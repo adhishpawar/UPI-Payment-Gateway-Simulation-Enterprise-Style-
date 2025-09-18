@@ -3,10 +3,10 @@ package com.upi.bankservice.models;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Random;
 import java.util.UUID;
 
 @Entity
@@ -19,19 +19,17 @@ import java.util.UUID;
 public class BankAccount {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "account_id", updatable = false, nullable = false)
-    private UUID accountId;
+    @Column(name = "account_id", nullable = false, unique = true, length = 20)
+    private String accountId;
 
     @Column(name = "account_number", nullable = false, unique = true,length = 20)
     private String accountNumber;
 
     @Column(name = "user_id", nullable = false)
-    private UUID userId; // comes from User-Service
+    private String userId; // comes from User-Service
 
     @Column(name = "bank_id", nullable = false)
-    private UUID bankId; // maps to Bank
+    private String bankId; // maps to Bank
 
     @Column(name = "ifsc_code", nullable = false)
     private String ifscCode;
@@ -53,8 +51,17 @@ public class BankAccount {
 
     @PrePersist
     protected void onCreate() {
+        if (this.accountId == null) {
+            this.accountId = generateAccountId();
+        }
+        if (this.accountNumber == null) {
+            this.accountNumber = generateAccountNumber();
+        }
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        if (this.balance == null) {
+            this.balance = BigDecimal.ZERO;
+        }
     }
 
     @PreUpdate
@@ -62,11 +69,21 @@ public class BankAccount {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public UUID getAccountId() {
+    // ---- Generators ----
+    private String generateAccountId() {
+        return "ACCID" + String.format("%010d", new Random().nextInt(1_000_000_000));
+    }
+
+    private String generateAccountNumber() {
+        return "ANN" + String.format("%010d", new Random().nextInt(1_000_000_000));
+    }
+
+
+    public String getAccountId() {
         return accountId;
     }
 
-    public void setAccountId(UUID accountId) {
+    public void setAccountId(String accountId) {
         this.accountId = accountId;
     }
 
@@ -78,19 +95,19 @@ public class BankAccount {
         this.accountNumber = accountNumber;
     }
 
-    public UUID getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(UUID userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public UUID getBankId() {
+    public String getBankId() {
         return bankId;
     }
 
-    public void setBankId(UUID bankId) {
+    public void setBankId(String bankId) {
         this.bankId = bankId;
     }
 

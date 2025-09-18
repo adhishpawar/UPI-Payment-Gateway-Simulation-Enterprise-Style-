@@ -15,7 +15,7 @@ public class User {
 
 
     @Id
-    @Column(name = "user_id", nullable = false, updatable = false)
+    @Column(name = "user_id", nullable = false, updatable = false,length = 36)
     private String userId;
 
     @Column(nullable = false)
@@ -41,12 +41,21 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    // Constructors
     public User() {
-        this.userId = UUID.randomUUID().toString();
+
+    }
+
+    @PrePersist
+    public void generateId() {
+        if (this.userId == null) {
+            // Fetch current timestamp-based counter
+            long millis = System.currentTimeMillis() % 100000; // keep last 5 digits
+            this.userId = String.format("USR%05d", millis);
+        }
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }
+
 
     public User(String name, String email, String phone, UserType userType) {
         this();

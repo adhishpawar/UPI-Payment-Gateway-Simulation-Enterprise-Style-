@@ -13,8 +13,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface BankAccountRepository extends JpaRepository<BankAccount, UUID> {
-    List<BankAccount> findByUserId(UUID userId);
+public interface BankAccountRepository extends JpaRepository<BankAccount, String> {
+    List<BankAccount> findByUserId(String userId);
 
     Optional<BankAccount> findByAccountNumber(String accountNumber);
 

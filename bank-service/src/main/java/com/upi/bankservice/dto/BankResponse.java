@@ -1,20 +1,19 @@
 package com.upi.bankservice.dto;
 
 import lombok.Data;
-import java.util.UUID;
 
 @Data
 public class BankResponse {
-    private UUID bankId;
+    private String bankId;
     private String name;
     private String ifscCode;
     private String upiHandle;
 
-    public UUID getBankId() {
+    public String getBankId() {
         return bankId;
     }
 
-    public void setBankId(UUID bankId) {
+    public void setBankId(String bankId) {
         this.bankId = bankId;
     }
 

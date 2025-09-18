@@ -29,7 +29,6 @@ public class BankController {
             @Valid @RequestBody BankRequest request) {
         Bank bank = new Bank();
         bank.setName(request.getName());
-        bank.setIfscCode(request.getIfscCode());
         bank.setUpiHandle(request.getUpiHandle());
 
         Bank created = bankService.createBank(bank);
@@ -63,7 +62,7 @@ public class BankController {
 
     // GET /banks/{id} → get bank by ID
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<BankResponse>> getBankById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<BankResponse>> getBankById(@PathVariable String id) {
         return bankService.getBankById(id)
                 .map(b -> {
                     BankResponse res = new BankResponse();

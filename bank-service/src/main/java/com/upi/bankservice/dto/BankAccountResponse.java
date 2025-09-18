@@ -3,39 +3,38 @@ package com.upi.bankservice.dto;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Data
 public class BankAccountResponse {
-    private UUID accountId;
-    private UUID userId;
-    private UUID bankId;
+    private String  accountId;
+    private String  userId;
+    private String  bankId;
     private String accountNumber;
     private String ifscCode;
     private BigDecimal balance;
     private boolean isPrimary;
 
-    public UUID getAccountId() {
+    public String getAccountId() {
         return accountId;
     }
 
-    public void setAccountId(UUID accountId) {
+    public void setAccountId(String accountId) {
         this.accountId = accountId;
     }
 
-    public UUID getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(UUID userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public UUID getBankId() {
+    public String getBankId() {
         return bankId;
     }
 
-    public void setBankId(UUID bankId) {
+    public void setBankId(String bankId) {
         this.bankId = bankId;
     }
 

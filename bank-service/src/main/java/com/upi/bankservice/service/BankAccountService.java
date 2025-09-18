@@ -1,6 +1,8 @@
 package com.upi.bankservice.service;
 
+import com.upi.bankservice.Repositories.BankRepository;
 import com.upi.bankservice.dto.TransactionResponse;
+import com.upi.bankservice.models.Bank;
 import com.upi.bankservice.models.BankAccount;
 import com.upi.bankservice.models.Idempotency;
 import com.upi.bankservice.models.Ledger;
@@ -27,15 +29,22 @@ public class BankAccountService {
     private LedgerRepository ledgerRepository;
     @Autowired
     private IdempotencyRepository idempotencyRepository;
+    @Autowired
+    private BankRepository bankRepository;
 
     // Create Bank Account
     public BankAccount createAccount(BankAccount account) {
-        account.setBalance(BigDecimal.ZERO); // initialize balance
+        Bank bank = bankRepository.findById(account.getBankId())
+                .orElseThrow(() -> new IllegalArgumentException("Bank not found for ID: " + account.getBankId()));
+
+        account.setIfscCode(bank.getIfscCode());  // ✅ Set IFSC Code
+        account.setBalance(BigDecimal.ZERO);      // Initialize balance
+
         return accountRepository.save(account);
     }
 
     // Get all accounts for a user
-    public List<BankAccount> getAccountsByUser(UUID userId) {
+    public List<BankAccount> getAccountsByUser(String userId) {
         return accountRepository.findByUserId(userId);
     }
 
